@@ -109,7 +109,7 @@ def get_food_calories(food_name):
     try:
         food_en = translate_to_english(food_name)
         url = f"https://world.openfoodfacts.org/cgi/search.pl?search_terms={food_en}&json=true"
-        response = requests.get(url, timeout=20)
+        response = requests.get(url, timeout=600)
         
         if response.status_code == 200:
             data = response.json()
