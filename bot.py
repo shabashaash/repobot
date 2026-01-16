@@ -20,6 +20,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
+
 WEIGHT, HEIGHT, AGE, GENDER, ACTIVITY, CITY, FOOD_AMOUNT, WORKOUT_TYPE, WORKOUT_DURATION = range(9)
 
 users = {}
@@ -27,6 +29,23 @@ users = {}
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN', 'YOUR_TELEGRAM_BOT_TOKEN')
 WEATHER_API_KEY = os.getenv('WEATHER_API_KEY', 'YOUR_OPENWEATHER_API_KEY')
 NINJAS_API_KEY = os.getenv('NINJAS_API_KEY', 'YOUR_API_NINJAS_KEY')
+
+
+async def logging_middleware(update, context):
+    user = update.effective_user
+    
+    if update.message:
+        logger.info(
+            f"User {user.id} (@{user.username}) | "
+            f"Message: {update.message.text}"
+        )
+    elif update.callback_query:
+        logger.info(
+            f"User {user.id} (@{user.username}) | "
+            f"Callback: {update.callback_query.data}"
+        )
+    
+    return None
 
 def translate_to_english(text):
     try:
@@ -150,7 +169,6 @@ def init_user_data(user_id):
 async def start(update, context):
     user_id = update.effective_user.id
     init_user_data(user_id)
-    logger.info(f"user {user_id} started the bot")
     
     await update.message.reply_text(
         "Доступные команды:\n"
@@ -164,7 +182,6 @@ async def start(update, context):
     )
 
 async def help_command(update, context):
-    logger.info(f"user {update.effective_user.id} requested help")
     await update.message.reply_text(
         "/set_profile - Укажите вес, рост, возраст, пол, активность и город\n"
         "/log_water <мл> - Например: /log_water 250\n"
@@ -177,7 +194,6 @@ async def help_command(update, context):
 async def set_profile(update, context):
     user_id = update.effective_user.id
     init_user_data(user_id)
-    logger.info(f"user {user_id} started profile setup")
     
     await update.message.reply_text(
         "Настройка профиля\n\n"
@@ -275,7 +291,6 @@ async def city_handler(update, context):
     users[user_id]['logged_calories'] = 0
     users[user_id]['burned_calories'] = 0
     
-    logger.info(f"user {user_id} completed profile setup")
     
     await update.message.reply_text(
         f"Ваши параметры:\n"
@@ -321,7 +336,6 @@ async def log_water(update, context):
             'amount': users[user_id]['logged_water']
         })
         
-        logger.info(f"user {user_id} logged {amount}ml water")
         
         if remaining <= 0:
             await update.message.reply_text(
@@ -397,7 +411,6 @@ async def food_amount_handler(update, context):
             'amount': users[user_id]['logged_calories']
         })
         
-        logger.info(f"user {user_id} logged {amount}g of {food_data['name']} ({calories} kcal)")
 
         await update.message.reply_text(
             f"Записано: {calories:.1f} ккал\n"
@@ -451,7 +464,6 @@ async def log_workout_start(update, context):
             'amount': (duration // 30) * -200
         })
         
-        logger.info(f"user {user_id} logged workout: {workout_type} for {duration} min ({calories_burned} kcal)")
         
         
         await update.message.reply_text(
@@ -485,7 +497,6 @@ async def check_progress(update, context):
     calorie_balance = user_data['logged_calories'] - user_data['burned_calories']
     calorie_remaining = user_data['calorie_goal'] - calorie_balance
     
-    logger.info(f"user {user_id} checked progress")
     
     
     await update.message.reply_text(
@@ -518,7 +529,6 @@ async def show_graphs(update, context):
         )
         return
     
-    logger.info(f"user {user_id} requested graphs")
     
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
     
@@ -572,6 +582,11 @@ async def show_graphs(update, context):
 def main():
     application = Application.builder().token(TELEGRAM_TOKEN).build()
     
+    application.add_handler(
+        MessageHandler(filters.ALL, logging_middleware),
+        group=-1  
+    )
+
     profile_conv = ConversationHandler(
         entry_points=[CommandHandler('set_profile', set_profile)],
         states={
