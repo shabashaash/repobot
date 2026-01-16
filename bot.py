@@ -92,7 +92,7 @@ def get_calories_burned(activity, duration_minutes, weight):
         activity_en = translate_to_english(activity)
         url = f"https://api.api-ninjas.com/v1/caloriesburned?activity={activity_en}"
         headers = {'X-Api-Key': NINJAS_API_KEY}
-        response = requests.get(url, headers=headers, timeout=5)
+        response = requests.get(url, headers=headers, timeout=20)
         
         if response.status_code == 200:
             data = response.json()
@@ -108,32 +108,11 @@ def get_calories_burned(activity, duration_minutes, weight):
 def get_food_calories(food_name):
     try:
         food_en = translate_to_english(food_name)
-        logger.info(f"{food_en}")
-        url = f"https://api.api-ninjas.com/v1/nutrition?query={food_en}"
-        headers = {'X-Api-Key': NINJAS_API_KEY}
-        response = requests.get(url, headers=headers, timeout=5)
+        url = f"https://world.openfoodfacts.org/cgi/search.pl?search_terms={food_en}&json=true"
+        response = requests.get(url, timeout=20)
         
         if response.status_code == 200:
             data = response.json()
-            logger.info(f"{str(data)}")
-            if data and len(data) > 0:
-                return {
-                    'name': data[0]['name'],
-                    'calories': data[0]['calories'],
-                    'serving_size': data[0]['serving_size_g']
-                }
-    except Exception as e:
-        logger.error(f"Nutrition API error: {e}")
-    
-    try:
-        food_en = translate_to_english(food_name)
-        logger.info(f"openfoodfacts {food_en}")
-        url = f"https://world.openfoodfacts.org/cgi/search.pl?search_terms={food_en}&search_simple=1&json=1"
-        response = requests.get(url, timeout=5)
-        
-        if response.status_code == 200:
-            data = response.json()
-            logger.info(f"{str(data)}")
             if data['products']:
                 product = data['products'][0]
                 calories = product.get('nutriments', {}).get('energy-kcal_100g', 0)
