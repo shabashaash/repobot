@@ -115,7 +115,7 @@ def get_food_calories(food_name):
         
         if response.status_code == 200:
             data = response.json()
-            logger.info(f"user {user_id} {str(data}")
+            logger.info(f"user {user_id} {str(data)}")
             if data and len(data) > 0:
                 return {
                     'name': data[0]['name'],
@@ -133,7 +133,7 @@ def get_food_calories(food_name):
         
         if response.status_code == 200:
             data = response.json()
-            logger.info(f"user {user_id} {str(data}")
+            logger.info(f"user {user_id} {str(data)}")
             if data['products']:
                 product = data['products'][0]
                 calories = product.get('nutriments', {}).get('energy-kcal_100g', 0)
