@@ -1,0 +1,4 @@
+python-telegram-bot==21.0.1
+requests==2.31.0
+matplotlib==3.8.2
+deep-translator==1.11.4
