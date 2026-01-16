@@ -108,14 +108,14 @@ def get_calories_burned(activity, duration_minutes, weight):
 def get_food_calories(food_name):
     try:
         food_en = translate_to_english(food_name)
-        logger.info(f"user {user_id} {food_en}")
+        logger.info(f"{food_en}")
         url = f"https://api.api-ninjas.com/v1/nutrition?query={food_en}"
         headers = {'X-Api-Key': NINJAS_API_KEY}
         response = requests.get(url, headers=headers, timeout=5)
         
         if response.status_code == 200:
             data = response.json()
-            logger.info(f"user {user_id} {str(data)}")
+            logger.info(f"{str(data)}")
             if data and len(data) > 0:
                 return {
                     'name': data[0]['name'],
@@ -127,13 +127,13 @@ def get_food_calories(food_name):
     
     try:
         food_en = translate_to_english(food_name)
-        logger.info(f"openfoodfacts user {user_id} {food_en}")
+        logger.info(f"openfoodfacts {food_en}")
         url = f"https://world.openfoodfacts.org/cgi/search.pl?search_terms={food_en}&search_simple=1&json=1"
         response = requests.get(url, timeout=5)
         
         if response.status_code == 200:
             data = response.json()
-            logger.info(f"user {user_id} {str(data)}")
+            logger.info(f"{str(data)}")
             if data['products']:
                 product = data['products'][0]
                 calories = product.get('nutriments', {}).get('energy-kcal_100g', 0)
@@ -525,58 +525,105 @@ async def show_graphs(update, context):
     
     if not user_data['water_history'] and not user_data['calorie_history']:
         await update.message.reply_text(
-            "Пока нет данных для графиков."
+            "Пока нет данных для графиков. Начните логировать воду и еду!"
         )
         return
     
-    
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
     
     if user_data['water_history']:
         times = [entry['time'] for entry in user_data['water_history']]
         amounts = [entry['amount'] for entry in user_data['water_history']]
         
-        ax1.plot(times, amounts, marker='o', linewidth=2, markersize=6, color='#3498db')
+        ax1.plot(times, amounts, marker='o', linewidth=2.5, markersize=8, 
+                 color='#3498db', label='Выпито воды')
         ax1.axhline(y=user_data['water_goal'], color='#2ecc71', linestyle='--', 
-                    label=f'Цель: {user_data["water_goal"]} мл')
-        ax1.fill_between(times, amounts, alpha=0.3, color='#3498db')
-        ax1.set_ylabel('Вода (мл)', fontsize=12)
-        ax1.set_title('Прогресс по воде', fontsize=14, fontweight='bold')
-        ax1.legend()
-        ax1.grid(True, alpha=0.3)
+                    linewidth=2, label=f'Цель: {user_data["water_goal"]} мл')
+        ax1.fill_between(times, amounts, alpha=0.2, color='#3498db')
+        
+        current_water = user_data['logged_water']
+        
+        ax1.text(0.02, 0.98, 
+                 f'Текущий объём: {current_water} мл ({(current_water / user_data['water_goal']) * 100:.1f}%)\n'
+                 f'Осталось: {max(0, user_data['water_goal'] - current_water)} мл',
+                 transform=ax1.transAxes,
+                 fontsize=11,
+                 verticalalignment='top',
+                 bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+        
+        ax1.set_ylabel('Вода (мл)', fontsize=13, fontweight='bold')
+        ax1.set_title('Прогресс по воде', fontsize=15, fontweight='bold', pad=15)
+        ax1.legend(fontsize=11, loc='upper left')
+        ax1.grid(True, alpha=0.3, linestyle='--')
     else:
         ax1.text(0.5, 0.5, 'Нет данных о воде', ha='center', va='center', 
-                 transform=ax1.transAxes, fontsize=12)
-        ax1.set_title('Прогресс по воде', fontsize=14, fontweight='bold')
+                 transform=ax1.transAxes, fontsize=14)
+        ax1.set_title('Прогресс по воде', fontsize=15, fontweight='bold', pad=15)
     
     if user_data['calorie_history']:
         times = [entry['time'] for entry in user_data['calorie_history']]
-        amounts = [entry['amount'] for entry in user_data['calorie_history']]
+        consumed = [entry['amount'] for entry in user_data['calorie_history']]
         
-        ax2.plot(times, amounts, marker='s', linewidth=2, markersize=6, color='#e74c3c')
+        ax2.plot(times, consumed, marker='s', linewidth=2.5, markersize=8, 
+                 color='#e74c3c', label='Потреблено', zorder=3)
+        ax2.fill_between(times, consumed, alpha=0.2, color='#e74c3c')
+        
+        burned = user_data['burned_calories']
+        net_calories = [c - burned for c in consumed]
+        ax2.plot(times, net_calories, marker='o', linewidth=2.5, markersize=8,
+                 color='#9b59b6', label='Чистый баланс', linestyle='--', zorder=3)
+        
         ax2.axhline(y=user_data['calorie_goal'], color='#2ecc71', linestyle='--',
-                    label=f'Цель: {user_data["calorie_goal"]} ккал')
-        ax2.fill_between(times, amounts, alpha=0.3, color='#e74c3c')
-        ax2.set_ylabel('Калории (ккал)', fontsize=12)
-        ax2.set_xlabel('Время', fontsize=12)
-        ax2.set_title('Прогресс по калориям', fontsize=14, fontweight='bold')
-        ax2.legend()
-        ax2.grid(True, alpha=0.3)
+                    linewidth=2, label=f'Цель: {user_data["calorie_goal"]} ккал', zorder=2)
+        
+        if burned > 0:
+            ax2.fill_between(times, consumed, net_calories, 
+                            alpha=0.3, color='#f39c12', 
+                            label=f'Сожжено: {burned:.0f} ккал')
+        
+        current_net = user_data['logged_calories'] - burned
+        
+        stats_text = (
+            f'Потреблено: {user_data['logged_calories']:.0f} ккал\n'
+            f'Сожжено: {burned:.0f} ккал\n'
+            f'Баланс: {current_net:.0f} ккал ({(current_net / user_data['calorie_goal']) * 100:.1f}%)\n'
+            f'Осталось: {user_data['calorie_goal'] - current_net:.0f} ккал'
+        )
+        
+        ax2.text(0.02, 0.98, stats_text,
+                 transform=ax2.transAxes,
+                 fontsize=11,
+                 verticalalignment='top',
+                 bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+        
+        ax2.set_ylabel('Калории (ккал)', fontsize=13, fontweight='bold')
+        ax2.set_xlabel('Время', fontsize=13, fontweight='bold')
+        ax2.set_title('Прогресс по калориям', fontsize=15, fontweight='bold', pad=15)
+        ax2.legend(fontsize=11, loc='upper left')
+        ax2.grid(True, alpha=0.3, linestyle='--')
     else:
         ax2.text(0.5, 0.5, 'Нет данных о калориях', ha='center', va='center',
-                 transform=ax2.transAxes, fontsize=12)
-        ax2.set_title('Прогресс по калориям', fontsize=14, fontweight='bold')
+                 transform=ax2.transAxes, fontsize=14)
+        ax2.set_title('Прогресс по калориям', fontsize=15, fontweight='bold', pad=15)
     
     plt.tight_layout()
     
     buf = io.BytesIO()
-    plt.savefig(buf, format='png', dpi=100, bbox_inches='tight')
+    plt.savefig(buf, format='png', dpi=120, bbox_inches='tight')
     buf.seek(0)
     plt.close()
     
+    caption = "Ваш прогресс за сегодня\n\n"
+    
+    if user_data['water_history']:
+        caption += f"{water_status} Вода: {(user_data['logged_water'] / user_data['water_goal']) * 100:.0f}% выполнено\n"
+    
+    if user_data['calorie_history']:
+        caption += f"Калории: {((user_data['logged_calories'] - user_data['burned_calories']) / user_data['calorie_goal']) * 100:.0f}% от цели"
+    
     await update.message.reply_photo(
         photo=buf,
-        caption="Ваш прогресс за сегодня"
+        caption=caption
     )
 
 def main():
