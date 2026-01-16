@@ -89,12 +89,14 @@ def get_calories_burned(activity, duration_minutes, weight):
 def get_food_calories(food_name):
     try:
         food_en = translate_to_english(food_name)
+        logger.info(f"user {user_id} {food_en}")
         url = f"https://api.api-ninjas.com/v1/nutrition?query={food_en}"
         headers = {'X-Api-Key': NINJAS_API_KEY}
         response = requests.get(url, headers=headers, timeout=5)
         
         if response.status_code == 200:
             data = response.json()
+            logger.info(f"user {user_id} {str(data}")
             if data and len(data) > 0:
                 return {
                     'name': data[0]['name'],
@@ -106,11 +108,13 @@ def get_food_calories(food_name):
     
     try:
         food_en = translate_to_english(food_name)
+        logger.info(f"openfoodfacts user {user_id} {food_en}")
         url = f"https://world.openfoodfacts.org/cgi/search.pl?search_terms={food_en}&search_simple=1&json=1"
         response = requests.get(url, timeout=5)
         
         if response.status_code == 200:
             data = response.json()
+            logger.info(f"user {user_id} {str(data}")
             if data['products']:
                 product = data['products'][0]
                 calories = product.get('nutriments', {}).get('energy-kcal_100g', 0)
@@ -436,8 +440,17 @@ async def log_workout_start(update, context):
         calories_burned = get_calories_burned(workout_type, duration, weight)
         
         users[user_id]['burned_calories'] += calories_burned
+
+        users[user_id]['calorie_history'].append({
+            'time': datetime.now(),
+            'amount': -users[user_id]['burned_calories']
+        })
+
+        users[user_id]['water_history'].append({
+            'time': datetime.now(),
+            'amount': (duration // 30) * -200
+        })
         
-    
         logger.info(f"user {user_id} logged workout: {workout_type} for {duration} min ({calories_burned} kcal)")
         
         
