@@ -146,7 +146,7 @@ def init_user_data(user_id):
 async def start(update, context):
     user_id = update.effective_user.id
     init_user_data(user_id)
-    logger.info(f"User {user_id} started the bot")
+    logger.info(f"user {user_id} started the bot")
     
     await update.message.reply_text(
         "Доступные команды:\n"
@@ -271,7 +271,7 @@ async def city_handler(update, context):
     users[user_id]['logged_calories'] = 0
     users[user_id]['burned_calories'] = 0
     
-    logger.info(f"User {user_id} completed profile setup")
+    logger.info(f"user {user_id} completed profile setup")
     
     await update.message.reply_text(
         f"Ваши параметры:\n"
@@ -437,9 +437,8 @@ async def log_workout_start(update, context):
         
         users[user_id]['burned_calories'] += calories_burned
         
-        water_needed = 
-        
-        logger.info(f"User {user_id} logged workout: {workout_type} for {duration} min ({calories_burned} kcal)")
+    
+        logger.info(f"user {user_id} logged workout: {workout_type} for {duration} min ({calories_burned} kcal)")
         
         
         await update.message.reply_text(
