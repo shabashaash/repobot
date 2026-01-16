@@ -584,7 +584,7 @@ async def show_graphs(update, context):
         current_net = user_data['logged_calories'] - burned
         
         stats_text = (
-            f'Потреблено: {user_data['logged_calories']:.0f} ккал\n'
+            f"Потреблено: {user_data['logged_calories']:.0f} ккал\n"
             f'Сожжено: {burned:.0f} ккал\n'
             f"Баланс: {current_net:.0f} ккал ({(current_net / user_data['calorie_goal']) * 100:.1f}%)\n"
             f"Осталось: {user_data['calorie_goal'] - current_net:.0f} ккал"
