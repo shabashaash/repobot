@@ -538,14 +538,14 @@ async def show_graphs(update, context):
         ax1.plot(times, amounts, marker='o', linewidth=2.5, markersize=8, 
                  color='#3498db', label='Выпито воды')
         ax1.axhline(y=user_data['water_goal'], color='#2ecc71', linestyle='--', 
-                    linewidth=2, label=f'Цель: {user_data["water_goal"]} мл')
+                    linewidth=2, label=f"Цель: {user_data['water_goal']} мл")
         ax1.fill_between(times, amounts, alpha=0.2, color='#3498db')
         
         current_water = user_data['logged_water']
         
         ax1.text(0.02, 0.98, 
-                 f'Текущий объём: {current_water} мл ({(current_water / user_data['water_goal']) * 100:.1f}%)\n'
-                 f'Осталось: {max(0, user_data['water_goal'] - current_water)} мл',
+                 f"Текущий объём: {current_water} мл ({(current_water / user_data['water_goal']) * 100:.1f}%)\n"
+                 f"Осталось: {max(0, user_data['water_goal'] - current_water)} мл",
                  transform=ax1.transAxes,
                  fontsize=11,
                  verticalalignment='top',
@@ -574,7 +574,7 @@ async def show_graphs(update, context):
                  color='#9b59b6', label='Чистый баланс', linestyle='--', zorder=3)
         
         ax2.axhline(y=user_data['calorie_goal'], color='#2ecc71', linestyle='--',
-                    linewidth=2, label=f'Цель: {user_data["calorie_goal"]} ккал', zorder=2)
+                    linewidth=2, label=f"Цель: {user_data['calorie_goal']} ккал", zorder=2)
         
         if burned > 0:
             ax2.fill_between(times, consumed, net_calories, 
@@ -586,8 +586,8 @@ async def show_graphs(update, context):
         stats_text = (
             f'Потреблено: {user_data['logged_calories']:.0f} ккал\n'
             f'Сожжено: {burned:.0f} ккал\n'
-            f'Баланс: {current_net:.0f} ккал ({(current_net / user_data['calorie_goal']) * 100:.1f}%)\n'
-            f'Осталось: {user_data['calorie_goal'] - current_net:.0f} ккал'
+            f"Баланс: {current_net:.0f} ккал ({(current_net / user_data['calorie_goal']) * 100:.1f}%)\n"
+            f"Осталось: {user_data['calorie_goal'] - current_net:.0f} ккал"
         )
         
         ax2.text(0.02, 0.98, stats_text,
