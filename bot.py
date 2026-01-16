@@ -532,7 +532,7 @@ async def show_graphs(update, context):
         
         ax1.set_ylabel('Вода (мл)', fontsize=13, fontweight='bold')
         ax1.set_title('Прогресс по воде', fontsize=15, fontweight='bold', pad=15)
-        ax1.legend(fontsize=11, loc='upper left')
+        ax1.legend(fontsize=11, loc='upper right')
         ax1.grid(True, alpha=0.3, linestyle='--')
     else:
         ax1.text(0.5, 0.5, 'Нет данных о воде', ha='center', va='center', 
@@ -578,7 +578,7 @@ async def show_graphs(update, context):
         ax2.set_ylabel('Калории (ккал)', fontsize=13, fontweight='bold')
         ax2.set_xlabel('Время', fontsize=13, fontweight='bold')
         ax2.set_title('Прогресс по калориям', fontsize=15, fontweight='bold', pad=15)
-        ax2.legend(fontsize=11, loc='upper left')
+        ax2.legend(fontsize=11, loc='upper right')
         ax2.grid(True, alpha=0.3, linestyle='--')
     else:
         ax2.text(0.5, 0.5, 'Нет данных о калориях', ha='center', va='center',
