@@ -226,7 +226,7 @@ async def gender_handler(update, context):
     
     users[user_id]['gender'] = gender
     await update.message.reply_text(
-        "Дополнительная активность в день (в минутах)?",
+        "Цель активности в день (в минутах):",
         reply_markup=ReplyKeyboardRemove()
     )
     return ACTIVITY
