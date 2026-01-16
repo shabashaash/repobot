@@ -525,7 +525,7 @@ async def show_graphs(update, context):
     
     if not user_data['water_history'] and not user_data['calorie_history']:
         await update.message.reply_text(
-            "📊 Пока нет данных для графиков. Начните логировать воду и еду!"
+            "Пока нет данных для графиков."
         )
         return
     
