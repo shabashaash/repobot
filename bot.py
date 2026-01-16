@@ -616,7 +616,7 @@ async def show_graphs(update, context):
     caption = "Ваш прогресс за сегодня\n\n"
     
     if user_data['water_history']:
-        caption += f"{water_status} Вода: {(user_data['logged_water'] / user_data['water_goal']) * 100:.0f}% выполнено\n"
+        caption += f"Вода: {(user_data['logged_water'] / user_data['water_goal']) * 100:.0f}% выполнено\n"
     
     if user_data['calorie_history']:
         caption += f"Калории: {((user_data['logged_calories'] - user_data['burned_calories']) / user_data['calorie_goal']) * 100:.0f}% от цели"
